@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ collection_data.display_name }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <h1>Add {{ collection_data.display_name }}</h1>
+
+  <!-- Flash messages for success or error -->
+  {% with messages = get_flashed_messages(category_filter=["success"]) %}
+    {% if messages %}
+      <div class="flash-message success">
+        {% for msg in messages %}
+          <p>{{ msg }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <form method="POST">
+    {% for field in collection_data.fields %}
+      <label>{{ field.replace("_", " ").title() }}:</label>
+      <input type="text" name="{{ field }}" required><br><br>
+    {% endfor %}
+    <button type="submit">Submit</button>
+  </form>
+
+  <a href="{{ url_for('home') }}">Back to Home</a>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

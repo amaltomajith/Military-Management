@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Military Management System</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <h1>Military Management System</h1>
+  <ul>
+    {% for key, info in collections_info.items() %}
+      <li>
+        <a href="{{ url_for('form_page', collection_key=key) }}">
+          <button>{{ info.display_name }}</button>
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ collection_name }} - Manage</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+  <div class="container">
+    <h1 class="mt-4">Manage Collection: {{ collection_name }}</h1>
+    
+    <!-- Display flash messages -->
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="alert alert-success">
+          {% for message in messages %}
+            <p>{{ message }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+    
+    <!-- Documents Table -->
+    <h3>Documents</h3>
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Data</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for doc in documents %}
+          <tr>
+            <td>{{ doc['_id'] }}</td>
+            <td>
+              <!-- Display each field except _id -->
+              {% for key, value in doc.items() if key != '_id' %}
+                <strong>{{ key }}:</strong> {{ value }}<br>
+              {% endfor %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    
+    <!-- Insert Form -->
+    <hr>
+    <h3>Insert Document</h3>
+    <form method="POST">
+      <!-- Hidden field to indicate the action -->
+      <input type="hidden" name="action" value="insert">
+      <div class="form-group">
+        <label for="field1">Field1</label>
+        <input type="text" class="form-control" id="field1" name="field1" placeholder="Enter value">
+      </div>
+      <div class="form-group">
+        <label for="field2">Field2</label>
+        <input type="text" class="form-control" id="field2" name="field2" placeholder="Enter value">
+      </div>
+      <button type="submit" class="btn btn-primary">Insert</button>
+    </form>
+    
+    <!-- Delete Form -->
+    <hr>
+    <h3>Delete Document</h3>
+    <form method="POST">
+      <input type="hidden" name="action" value="delete">
+      <div class="form-group">
+        <label for="doc_id">Document ID</label>
+        <input type="text" class="form-control" id="doc_id" name="doc_id" placeholder="Enter Document ID">
+      </div>
+      <button type="submit" class="btn btn-danger">Delete</button>
+    </form>
+    
+    <!-- Update Form -->
+    <hr>
+    <h3>Update Document</h3>
+    <form method="POST">
+      <input type="hidden" name="action" value="update">
+      <div class="form-group">
+        <label for="doc_id">Document ID</label>
+        <input type="text" class="form-control" id="doc_id" name="doc_id" placeholder="Enter Document ID">
+      </div>
+      <div class="form-group">
+        <label for="field1">New Field1 Value</label>
+        <input type="text" class="form-control" id="field1" name="field1" placeholder="Enter new value">
+      </div>
+      <div class="form-group">
+        <label for="field2">New Field2 Value</label>
+        <input type="text" class="form-control" id="field2" name="field2" placeholder="Enter new value">
+      </div>
+      <button type="submit" class="btn btn-warning">Update</button>
+    </form>
+    
+  </div>
+</body>
+</html>
