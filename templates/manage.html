@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Manage {{ table.capitalize() }}</title>
+</head>
+<body>
+  <h2>Manage {{ table.capitalize() }}</h2>
+  <form method="POST">
+    <!-- Hidden field to differentiate update vs delete -->
+    <input type="hidden" name="update" value="true">
+    {% for k,v in doc.items() if k != '_id' %}
+      <label>{{ k }}:</label>
+      <input type="text" name="{{ k }}" value="{{ v }}"><br><br>
+    {% endfor %}
+    <button type="submit">Update</button>
+  </form>
+
+  <form method="POST">
+    <!-- This triggers delete because we check 'delete' in request.form -->
+    <input type="hidden" name="delete" value="true">
+    <button type="submit">Delete</button>
+  </form>
+
+  <hr>
+  <a href="/collection/{{ table }}">Back to {{ table.capitalize() }} Collection</a>
+</body>
+</html>

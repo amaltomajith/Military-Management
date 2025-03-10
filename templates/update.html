@@ -2,17 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Military Management - Add {{ category.title() }}</title>
+  <title>Update {{ category.title() }}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
   <header>
-    <h1>Add {{ category.title() }}</h1>
+    <h1>Update {{ category.title() }}</h1>
   </header>
 
-  <!-- Center everything inside the container -->
   <div class="container" style="text-align: center;">
-    <!-- Flash messages -->
+    <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         <div class="flash-container">
@@ -23,21 +22,24 @@
       {% endif %}
     {% endwith %}
 
-    <!-- Black box is inline-block, so it auto-sizes, and we set text-align:left for labels/inputs -->
+    <!-- Centered black box with prefilled data -->
     <div class="form-box" style="display: inline-block; text-align: left;">
       <form method="POST">
         {% for field in fields %}
           <div class="form-group">
             <label>{{ field.title() }}:</label>
-            <input type="text" name="{{ field }}" required>
+            <!-- Prefill with existing_doc[field], if any -->
+            <input type="text" name="{{ field }}" value="{{ existing_doc[field] }}">
           </div>
         {% endfor %}
-        <button type="submit" class="btn-add">Add Document</button>
+
+        <button type="submit" class="btn-update">Update Document</button>
       </form>
 
-      <!-- Spacing, then Back to Home below it -->
       <div style="margin-top: 15px;">
-        <a href="{{ url_for('home') }}" class="btn-back">Back to Home</a>
+        <a href="{{ url_for('show_collection', category=category) }}" class="btn-back">
+          Back to {{ category.title() }}
+        </a>
       </div>
     </div>
   </div>

@@ -2,20 +2,25 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Military Management System</title>
+  <title>Military Management - Home</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <h1>Military Management System</h1>
-  <ul>
-    {% for key, info in collections_info.items() %}
-      <li>
-        <a href="{{ url_for('form_page', collection_key=key) }}">
-          <button>{{ info.display_name }}</button>
-        </a>
-      </li>
-    {% endfor %}
-  </ul>
+  <header>
+    <h1>Military Management System</h1>
+  </header>
+
+  <!-- Semi-transparent black rectangle around home content -->
+  <div class="home-panel">
+    <h2>Select a Category</h2>
+    <ul class="category-list">
+      <li><a href="{{ url_for('show_collection', category='personnel') }}">Personnel</a></li>
+      <li><a href="{{ url_for('show_collection', category='units') }}">Units</a></li>
+      <li><a href="{{ url_for('show_collection', category='weapons') }}">Weapons</a></li>
+      <li><a href="{{ url_for('show_collection', category='missions') }}">Missions</a></li>
+      <li><a href="{{ url_for('show_collection', category='vehicles') }}">Vehicles</a></li>
+    </ul>
+  </div>
 
   <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>

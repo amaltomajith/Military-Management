@@ -1,73 +1,189 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 from pymongo import MongoClient
+from bson import ObjectId
+from datetime import datetime
 
 app = Flask(__name__)
-app.secret_key = 'mysecretkey'  # Required for flash messages
+app.secret_key = "replace_with_your_secret_key"
 
-# Connect to MongoDB (adjust host/port if needed)
+# -----------------------------
+# 1. CONNECT TO MONGODB
+# -----------------------------
 client = MongoClient("mongodb://localhost:27017/")
-db = client["militaryDB"]
+db = client["military_management"]
 
-# Dictionary defining each collection and its fields
-collections_info = {
-    "personnel": {
-        "display_name": "Personnel Information",
-        "fields": ["personnel_id", "name", "age", "rank", "unit"]
-    },
-    "units": {
-        "display_name": "Units",
-        "fields": ["unit_id", "unit_name", "location", "commander"]
-    },
-    "weapons": {
-        "display_name": "Weapons",
-        "fields": ["weapon_id", "weapon_name", "type", "status"]
-    },
-    "missions": {
-        "display_name": "Missions",
-        "fields": ["mission_id", "mission_name", "objective", "status"]
-    },
-    "vehicles": {
-        "display_name": "Vehicles",
-        "fields": ["vehicle_id", "vehicle_name", "type", "status"]
-    }
+# -----------------------------
+# 2. DEFINE CATEGORIES + FIELDS
+# -----------------------------
+collections_map = {
+    "personnel": "personnel",
+    "units": "units",
+    "weapons": "weapons",
+    "missions": "missions",
+    "vehicles": "vehicles"
 }
 
-# Home Page: Displays 5 buttons (one for each "table"/collection)
-@app.route('/')
+fields_map = {
+    "personnel": ["name", "rank", "experience", "role", "department"],
+    "units": ["unit_name", "location", "capacity", "specialization", "commander"],
+    "weapons": ["name", "company", "damage", "rate_of_fire", "amount"],
+    "missions": ["name", "objective", "location", "status", "commander"],
+    "vehicles": ["model", "type", "capacity", "range", "crew_required"]
+}
+
+# -----------------------------
+# 3. HOME ROUTE
+# -----------------------------
+@app.route("/")
 def home():
-    return render_template('index.html', collections_info=collections_info)
+    """
+    Shows the homepage with 5 buttons: Personnel, Units, Weapons, Missions, Vehicles.
+    """
+    return render_template("index.html")
 
-# Form Page: Allows user to insert data into the chosen collection
-@app.route('/form/<collection_key>', methods=['GET', 'POST'])
-def form_page(collection_key):
-    if collection_key not in collections_info:
-        return "Invalid Collection Key!", 404
+# -----------------------------
+# 4. COLLECTION ROUTE (VIEW + DELETE ONLY)
+# -----------------------------
+@app.route("/collection/<category>")
+def show_collection(category):
+    """
+    GET: Display all documents in the category in a table.
+         The 'Update' button now links to a separate page (/update/<category>/<doc_id>).
+    """
+    if category not in collections_map:
+        return "Invalid category!", 404
 
-    collection_data = collections_info[collection_key]
-    collection = db[collection_key]  # The actual MongoDB collection
+    col_name = collections_map[category]
+    col = db[col_name]
 
-    if request.method == 'POST':
-        # Build a document from the form input
-        doc = {}
-        for field in collection_data["fields"]:
-            doc[field] = request.form.get(field, "")
-
-        # Insert into MongoDB
-        collection.insert_one(doc)
-
-        flash(f"Data inserted into {collection_data['display_name']} successfully!", "success")
-        return redirect(url_for('success'))
+    documents = list(col.find())
+    category_fields = fields_map[category]
 
     return render_template(
-        'form.html',
-        collection_key=collection_key,
-        collection_data=collection_data
+        "collection.html",
+        category=category,
+        documents=documents,
+        fields=category_fields
     )
 
-# Success Page: Shown after data is inserted
-@app.route('/success')
-def success():
-    return render_template('success.html')
+# -----------------------------
+# 5. FORM ROUTE (ADD NEW)
+# -----------------------------
+@app.route("/form/<category>", methods=["GET", "POST"])
+def add_form(category):
+    """
+    GET: Show a form to add a new doc to this category.
+    POST: Insert new doc, then redirect to success.
+    """
+    if category not in collections_map:
+        return "Invalid category!", 404
 
-if __name__ == '__main__':
+    col_name = collections_map[category]
+    col = db[col_name]
+
+    if request.method == "POST":
+        # Build the doc from the form data
+        new_doc = {}
+        for field in fields_map[category]:
+            new_doc[field] = request.form.get(field, "")
+
+        # Prevent Duplicate Personnel
+        if category == "personnel":
+            existing = col.find_one({
+                "name": new_doc["name"],
+                "rank": new_doc["rank"]
+            })
+            if existing:
+                flash("Duplicate personnel entry. Insert aborted!", "error")
+                return redirect(url_for("home"))
+
+        col.insert_one(new_doc)
+        flash("Document inserted successfully!", "success")
+        return redirect(url_for("success"))
+
+    category_fields = fields_map[category]
+    return render_template("form.html", category=category, fields=category_fields)
+
+# -----------------------------
+# 6. UPDATE ROUTE (LIKE ADD PAGE)
+# -----------------------------
+@app.route("/update/<category>/<doc_id>", methods=["GET", "POST"])
+def update_doc(category, doc_id):
+    """
+    GET: Show a form (like 'Add Document') with existing values prefilled.
+    POST: Update the document with new values under the same _id.
+    """
+    if category not in collections_map:
+        return "Invalid category!", 404
+
+    col_name = collections_map[category]
+    col = db[col_name]
+
+    existing_doc = col.find_one({"_id": ObjectId(doc_id)})
+    if not existing_doc:
+        flash("Document not found!", "error")
+        return redirect(url_for("show_collection", category=category))
+
+    if request.method == "POST":
+        update_data = {}
+        for field in fields_map[category]:
+            new_val = request.form.get(field)
+            if new_val is not None:
+                update_data[field] = new_val
+
+        # Auto-add completion_date if Missions is updated to 'Completed'
+        if category == "missions" and update_data.get("status", "").lower() == "completed":
+            update_data["completion_date"] = datetime.now().isoformat()
+
+        col.update_one({"_id": ObjectId(doc_id)}, {"$set": update_data})
+        flash("Document updated successfully!", "success")
+        return redirect(url_for("show_collection", category=category))
+
+    category_fields = fields_map[category]
+    return render_template(
+        "update.html",
+        category=category,
+        doc_id=doc_id,
+        existing_doc=existing_doc,
+        fields=category_fields
+    )
+
+# -----------------------------
+# 7. DELETE ROUTE
+# -----------------------------
+@app.route("/delete/<category>/<doc_id>")
+def delete_doc(category, doc_id):
+    """
+    Delete a document by _id, then redirect to the collection.
+    """
+    if category not in collections_map:
+        return "Invalid category!", 404
+
+    col_name = collections_map[category]
+    col = db[col_name]
+
+    # Log Deleted Missions
+    if category == "missions":
+        doc = col.find_one({"_id": ObjectId(doc_id)})
+        if doc:
+            db["mission_audit_log"].insert_one({
+                **doc,
+                "deleted_at": datetime.now().isoformat()
+            })
+
+    col.delete_one({"_id": ObjectId(doc_id)})
+    flash("Document deleted successfully!", "success")
+    return redirect(url_for("show_collection", category=category))
+
+# -----------------------------
+# 8. SUCCESS PAGE
+# -----------------------------
+@app.route("/success")
+def success():
+    return render_template("success.html")
+
+# -----------------------------
+# 9. RUN FLASK
+# -----------------------------
+if __name__ == "__main__":
     app.run(debug=True)

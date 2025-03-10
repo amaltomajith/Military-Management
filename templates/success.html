@@ -2,14 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Success</title>
+  <title>Military Management - Success</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <h1>Data Inserted Successfully!</h1>
-  <p>Your information has been stored in the database.</p>
+  <header>
+    <h1>Success</h1>
+  </header>
 
-  <a href="{{ url_for('home') }}">Back to Home</a>
+  <div class="container">
+    <p>Document inserted successfully!</p>
+    <a href="{{ url_for('home') }}" class="btn-back">Back to Home</a>
+  </div>
 
   <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>

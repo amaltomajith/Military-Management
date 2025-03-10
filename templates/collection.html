@@ -1,98 +1,73 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>{{ collection_name }} - Manage</title>
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <title>Military Management - {{ category.title() }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
+  <header>
+    <h1>{{ category.title() }} Collection</h1>
+  </header>
+
   <div class="container">
-    <h1 class="mt-4">Manage Collection: {{ collection_name }}</h1>
-    
-    <!-- Display flash messages -->
-    {% with messages = get_flashed_messages() %}
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
-        <div class="alert alert-success">
-          {% for message in messages %}
-            <p>{{ message }}</p>
+        <div class="flash-container">
+          {% for category_msg, msg in messages %}
+            <div class="flash-message {{ category_msg }}">{{ msg }}</div>
           {% endfor %}
         </div>
       {% endif %}
     {% endwith %}
-    
-    <!-- Documents Table -->
-    <h3>Documents</h3>
-    <table class="table table-bordered">
+
+    <h2>All Documents</h2>
+    <table>
       <thead>
         <tr>
-          <th>ID</th>
-          <th>Data</th>
+          <th>_id</th>
+          {% for field in fields %}
+          <th>{{ field }}</th>
+          {% endfor %}
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
         {% for doc in documents %}
-          <tr>
-            <td>{{ doc['_id'] }}</td>
-            <td>
-              <!-- Display each field except _id -->
-              {% for key, value in doc.items() if key != '_id' %}
-                <strong>{{ key }}:</strong> {{ value }}<br>
-              {% endfor %}
-            </td>
-          </tr>
+        <tr>
+          <!-- Document ID -->
+          <td>{{ doc['_id'] }}</td>
+
+          <!-- Document Fields -->
+          {% for field in fields %}
+          <td>{{ doc[field] }}</td>
+          {% endfor %}
+
+          <!-- Actions -->
+          <td>
+            <!-- Update Link: Goes to the new route -->
+            <a href="{{ url_for('update_doc', category=category, doc_id=doc['_id']) }}" class="btn-update">
+              Update
+            </a>
+
+            <!-- Delete Link -->
+            <a href="{{ url_for('delete_doc', category=category, doc_id=doc['_id']) }}" class="btn-delete">
+              Delete
+            </a>
+          </td>
+        </tr>
         {% endfor %}
       </tbody>
     </table>
-    
-    <!-- Insert Form -->
-    <hr>
-    <h3>Insert Document</h3>
-    <form method="POST">
-      <!-- Hidden field to indicate the action -->
-      <input type="hidden" name="action" value="insert">
-      <div class="form-group">
-        <label for="field1">Field1</label>
-        <input type="text" class="form-control" id="field1" name="field1" placeholder="Enter value">
-      </div>
-      <div class="form-group">
-        <label for="field2">Field2</label>
-        <input type="text" class="form-control" id="field2" name="field2" placeholder="Enter value">
-      </div>
-      <button type="submit" class="btn btn-primary">Insert</button>
-    </form>
-    
-    <!-- Delete Form -->
-    <hr>
-    <h3>Delete Document</h3>
-    <form method="POST">
-      <input type="hidden" name="action" value="delete">
-      <div class="form-group">
-        <label for="doc_id">Document ID</label>
-        <input type="text" class="form-control" id="doc_id" name="doc_id" placeholder="Enter Document ID">
-      </div>
-      <button type="submit" class="btn btn-danger">Delete</button>
-    </form>
-    
-    <!-- Update Form -->
-    <hr>
-    <h3>Update Document</h3>
-    <form method="POST">
-      <input type="hidden" name="action" value="update">
-      <div class="form-group">
-        <label for="doc_id">Document ID</label>
-        <input type="text" class="form-control" id="doc_id" name="doc_id" placeholder="Enter Document ID">
-      </div>
-      <div class="form-group">
-        <label for="field1">New Field1 Value</label>
-        <input type="text" class="form-control" id="field1" name="field1" placeholder="Enter new value">
-      </div>
-      <div class="form-group">
-        <label for="field2">New Field2 Value</label>
-        <input type="text" class="form-control" id="field2" name="field2" placeholder="Enter new value">
-      </div>
-      <button type="submit" class="btn btn-warning">Update</button>
-    </form>
-    
+
+    <h2>Add New Document</h2>
+    <a href="{{ url_for('add_form', category=category) }}" class="btn-add">Go to Form</a>
+    <br><br>
+
+    <a href="{{ url_for('home') }}" class="btn-back">Back to Home</a>
   </div>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

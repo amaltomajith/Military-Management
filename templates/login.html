@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login - Military Management</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header>
+    <h1>U.S. Army - Login</h1>
+  </header>
+
+  <div class="container">
+    <h2>Please Log In</h2>
+
+    <!-- Flash messages for errors -->
+    {% with messages = get_flashed_messages(category_filter=["error"]) %}
+      {% if messages %}
+        <div class="flash-message error">
+          {% for msg in messages %}
+            <p>{{ msg }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <!-- Flash messages for success (e.g., after logout) -->
+    {% with messages = get_flashed_messages(category_filter=["success"]) %}
+      {% if messages %}
+        <div class="flash-message success">
+          {% for msg in messages %}
+            <p>{{ msg }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST">
+      <label>Username:</label>
+      <input type="text" name="username" required><br><br>
+
+      <label>Password:</label>
+      <input type="password" name="password" required><br><br>
+
+      <button type="submit" class="button-style">Login</button>
+    </form>
+  </div>
+</body>
+</html>
